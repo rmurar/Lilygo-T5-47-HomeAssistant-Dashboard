@@ -1,4 +1,7 @@
-enum alignment {LEFT, RIGHT, CENTER};
+#include <Arduino.h>
+
+#include "epd_drawing.h"
+
 uint8_t *framebuffer;
 GFXfont  currentFont;
 

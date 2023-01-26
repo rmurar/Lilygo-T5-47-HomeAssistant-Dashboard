@@ -1,7 +1,21 @@
+// wifi
+#include <WiFi.h>
+
+#include <HTTPClient.h>
+#include <WiFiClient.h>
+#include <ArduinoJson.h>
+#include <NTPClient.h>
+#include <WiFiUdp.h>
+
+#include "defines.h"
+
+#include "homeassistantapi.h"
+#include "configurations.h"
+
 HTTPClient http;
 WiFiClientSecure client;
 
-int checkOnOffState(String entity)
+ActuatorState checkOnOffState(String entity)
 {
     String api_url = ha_server + "/api/states/" + entity;
     http.begin(api_url);
@@ -10,7 +24,7 @@ int checkOnOffState(String entity)
     if (code != HTTP_CODE_OK)
     {
         Serial.println("Error '" + String(code) + "' connecting to HA API: " + api_url);
-        return entity_state::ERROR;
+        return ActuatorState::ERROR;
     }
     DynamicJsonDocument doc(4096);
     DeserializationError error = deserializeJson(doc, http.getStream());
@@ -19,17 +33,17 @@ int checkOnOffState(String entity)
     {
         Serial.print(F("deserializeJson() failed: "));
         Serial.println(error.f_str());
-        return entity_state::ERROR;
+        return ActuatorState::ERROR;
     }
     String state = doc["state"];
     Serial.println("  - " + entity + " state: " + state);
     if (state == "on"){
-        return entity_state::ON;
+        return ActuatorState::ON;
     }
     if (state == "unavailable"){
-        return entity_state::UNAVAILABLE;
+        return ActuatorState::UNAVAILABLE;
     }
-    return entity_state::OFF;
+    return ActuatorState::OFF;
 }
 
 HAConfigurations getHaStatus()
@@ -125,6 +139,8 @@ String getSensorAttributeValue(String entity, String attribute)
     {
         return attr;
     }
+
+    return "";
 }
 
 float getSensorFloatValue(String entity)
