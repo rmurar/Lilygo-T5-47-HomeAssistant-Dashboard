@@ -29,6 +29,16 @@ public:
 
     }
 
+    const String& GetName() const
+    {
+        return m_name;
+    }
+
+    const String& GetId() const
+    {
+        return m_id;
+    }
+
 protected:
     EntityType m_entityType;
     String m_name;
@@ -41,7 +51,7 @@ class Sensor: public Entity
 public:
     union SensorValue
     {
-        bool m_binaryVtate;
+        bool m_binaryValue;
         float m_floatValue;
     };
 
@@ -50,6 +60,39 @@ public:
       m_valueType(valueType), m_sensorType(type)
     {
 
+    }
+
+    SensorType GetType() const
+    {
+        return m_sensorType;
+    }
+
+    SensorValueType GetValueType() const
+    {
+        return m_valueType;
+    }
+
+    bool GetValue(bool& value)
+    {
+        if(m_valueType == SensorValueType::ONOFF)
+        {
+            value = m_value.m_binaryValue;
+            return true;
+        }
+
+        return false;
+    }
+
+
+    bool GetValue(float& value)
+    {
+        if(m_valueType == SensorValueType::VALUE)
+        {
+            value = m_value.m_floatValue;
+            return true;
+        }
+
+        return false;
     }
 
 protected:
@@ -70,6 +113,16 @@ public:
       m_actuatorType(type)
     {
 
+    }
+
+    ActuatorType GetType() const
+    {
+        return m_actuatorType;
+    }
+
+    ActuatorState GetState() const
+    {
+        return m_state;
     }
 
 protected:

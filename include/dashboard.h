@@ -18,6 +18,15 @@ public:
 
     void ParseConfiguration();    
 
+    void DrawSwitchBar();
+    void DrawSensorBar();
+    void DrawBottomBar();
+    void DisplayStatusSection(int rssi);
+    void DrawWifiErrorScreen(int rssi);
+    void DisplayGeneralInfoSection(String dayStamp, String timeStamp);
+
+    void DrawDashboard(int rssi, String dayStamp, String timeStamp);
+
 private:
     void ClearLists();
 

@@ -6,6 +6,26 @@
 
 #include "defines.h"
 
+#define White 0xFF
+#define LightGrey 0xBB
+#define Grey 0x88
+#define DarkGrey 0x44
+#define Black 0x00
+
+#define BATT_PIN            36
+
+#define TILE_IMG_WIDTH  100
+#define TILE_IMG_HEIGHT 100
+#define TILE_WIDTH      160
+#define TILE_HEIGHT     160
+#define TILE_GAP        6
+#define SENSOR_TILE_WIDTH      120
+#define SENSOR_TILE_HEIGHT     110
+#define SENSOR_TILE_IMG_WIDTH  64
+#define SENSOR_TILE_IMG_HEIGHT 64
+#define BOTTOM_TILE_WIDTH      320
+#define BOTTOM_TILE_HEIGHT     90
+
 void DrawTile(int x, int y, int width, int height, const uint8_t *image_data, String state, String label);
 void DrawSensorTile(int x, int y, int width, int height, const uint8_t* image_data, String label);
 void DrawTile(int x, int y, ActuatorState state, ActuatorType type, String name, String value);

@@ -37,6 +37,8 @@
 #include "homeassistantapi.h"
 #include "draw.h"
 
+#include "dashboard.h"
+
 
 // deep sleep configurations
 long SleepDuration   = 1; // Sleep time in minutes, aligned to the nearest minute boundary, so if 30 will always update at 00 or 30 past the hour
@@ -56,6 +58,8 @@ NTPClient timeClient(ntpUDP);
 String formattedDate;
 String dayStamp;
 String timeStamp;
+
+Dashboard dashboard;
 
 /*
 struct EntityState
@@ -154,24 +158,33 @@ void BeginSleep() {
 }
 
 void setup() {
-  InitialiseSystem();
+    InitialiseSystem();
 
-  if (StartWiFi() == WL_CONNECTED) {
-      SetupTime();
+    dashboard.ParseConfiguration();
 
-      bool WakeUp = false;
-      if (WakeupHour > SleepHour)
-        WakeUp = (CurrentHour >= WakeupHour || CurrentHour <= SleepHour);
-      else
-        WakeUp = (CurrentHour >= WakeupHour && CurrentHour <= SleepHour);
-      if (WakeUp) {
-          DrawHAScreen(wifi_signal, dayStamp, timeStamp);
-      }
-  }
-  else {
-    DrawWifiErrorScreen(wifi_signal);
-  }
-  BeginSleep();
+    if (StartWiFi() == WL_CONNECTED) {
+        SetupTime();
+        bool WakeUp = false;
+
+        if (WakeupHour > SleepHour)
+        {
+            WakeUp = ((CurrentHour >= WakeupHour) || (CurrentHour <= SleepHour));
+        }
+        else
+        {
+            WakeUp = ((CurrentHour >= WakeupHour) && (CurrentHour <= SleepHour));
+        }
+
+        if (WakeUp) {
+            dashboard.DrawDashboard(wifi_signal, dayStamp, timeStamp);
+            //DrawHAScreen(wifi_signal, dayStamp, timeStamp);
+        }
+    }
+    else {
+        dashboard.DrawWifiErrorScreen(wifi_signal);
+    }
+    
+    BeginSleep();
 }
 
 void loop() {    
