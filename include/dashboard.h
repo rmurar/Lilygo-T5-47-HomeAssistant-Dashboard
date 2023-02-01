@@ -9,12 +9,21 @@
 
 #include "entity.h"
 #include "defines.h"
+#include "touch.h"
 
 class Dashboard
 {
 public:
+    static const gpio_num_t TOUCH_PANEL_INT;
+
+    static RTC_DATA_ATTR bool actuatorsStateArray[MAX_ACTUATOR_COUNT];
+    static RTC_DATA_ATTR bool sensorsStateArray[MAX_SENSORS_COUNT];
+    static RTC_DATA_ATTR float floatSensorsStateArray[MAX_FLOAT_SENSORS_COUNT];
+
     Dashboard();
     virtual ~Dashboard();
+
+    void Init();
 
     void ParseConfiguration();    
 
@@ -27,12 +36,17 @@ public:
 
     void DrawDashboard(int rssi, String dayStamp, String timeStamp);
 
+    void ClearRTCData();
+    bool IsDeepSleepWakeupReason();
+
 private:
     void ClearLists();
 
     std::vector<Sensor *> m_SensorsList;
     std::vector<Sensor *> m_FloatSensorsList;
     std::vector<Actuator *> m_AcuatorsList;
+
+    TouchClass m_touchClass;
 };
 
 

@@ -52,7 +52,7 @@ const ConfigSensor haSensors[] {
  *  Or you can customize the code the way you see fit (advanced)
 **/
 const ConfigSensor haFloatSensors[] {
-    {"TEPLOTA IZBA", "sensor.aquara_temperature", SensorType::TEMP, SensorValueType::VALUE},
+    {"TEPLOTA IZBA", "sensor.sonoff_izba_temperature", SensorType::TEMP, SensorValueType::VALUE},
     {"TEPLOTA VONKU", "sensor.aqara_vonku_temperature", SensorType::TEMP, SensorValueType::VALUE},
     {"SPOTREBA STOL", "sensor.shelly_plug_1_energy_power", SensorType::ENERGYMETERPWR, SensorValueType::VALUE}
 };

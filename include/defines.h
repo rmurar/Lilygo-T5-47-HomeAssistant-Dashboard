@@ -1,6 +1,10 @@
 #ifndef __DEFINES_H__
 #define __DEFINES_H__
 
+#define MAX_ACTUATOR_COUNT          (12)
+#define MAX_SENSORS_COUNT           (8)
+#define MAX_FLOAT_SENSORS_COUNT     (6)
+
 enum class ActuatorState {ON, OFF, ERROR, UNAVAILABLE};
 enum class ActuatorType {SWITCH, LIGHT, EXFAN, FAN, AIRPURIFIER, WATERHEATER, PLUG, AIRCONDITIONER, PLANT};
 

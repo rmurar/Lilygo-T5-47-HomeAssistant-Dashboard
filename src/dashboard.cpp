@@ -45,6 +45,12 @@
 #include "draw.h"
 #include "configurations.h"
 
+const gpio_num_t Dashboard::TOUCH_PANEL_INT = GPIO_NUM_13;
+
+RTC_DATA_ATTR bool Dashboard::actuatorsStateArray[MAX_ACTUATOR_COUNT];
+RTC_DATA_ATTR bool Dashboard::sensorsStateArray[MAX_SENSORS_COUNT];
+RTC_DATA_ATTR float Dashboard::floatSensorsStateArray[MAX_FLOAT_SENSORS_COUNT];
+
 Dashboard::Dashboard()
 {
     m_SensorsList.reserve(20);
@@ -55,6 +61,28 @@ Dashboard::Dashboard()
 
 Dashboard::~Dashboard()
 {
+
+}
+
+void Dashboard::Init()
+{
+/*
+    Serial.begin(115200);
+*/
+    pinMode(TOUCH_PANEL_INT, INPUT_PULLDOWN);
+
+    Wire.begin(15, 14);
+
+    if (!m_touchClass.begin()) {
+        Serial.println("start touchscreen failed");
+    }
+
+    if(!IsDeepSleepWakeupReason())
+    {
+        ClearRTCData();
+    }
+
+    ParseConfiguration();
 
 }
 
@@ -144,21 +172,21 @@ void Dashboard::DrawSwitchBar()
         if(actuator->GetName() != "") {
             ActuatorType type = actuator->GetType();
 
-          if (type == ActuatorType::SWITCH ||
-              type == ActuatorType::LIGHT ||
-              type == ActuatorType::EXFAN ||
-              type == ActuatorType::FAN ||
-              type == ActuatorType::AIRPURIFIER ||
-              type == ActuatorType::WATERHEATER ||
-              type == ActuatorType::AIRCONDITIONER)
-          {            
-              DrawTile(x, y, checkOnOffState(actuator->GetId()), actuator->GetType(), actuator->GetName(), "");
-          }
-          else 
-          {
-              String val = getSensorValue(actuator->GetId());
-              DrawTile(x, y, ActuatorState::UNAVAILABLE, actuator->GetType(), actuator->GetName(), val);
-          }
+            if (type == ActuatorType::SWITCH ||
+                type == ActuatorType::LIGHT ||
+                type == ActuatorType::EXFAN ||
+                type == ActuatorType::FAN ||
+                type == ActuatorType::AIRPURIFIER ||
+                type == ActuatorType::WATERHEATER ||
+                type == ActuatorType::AIRCONDITIONER)
+            {            
+                DrawTile(x, y, checkOnOffState(actuator->GetId()), actuator->GetType(), actuator->GetName(), "");
+            }
+            else 
+            {
+                String val = getSensorValue(actuator->GetId());
+                DrawTile(x, y, ActuatorState::UNAVAILABLE, actuator->GetType(), actuator->GetName(), val);
+            }
         }
       
         x = x + TILE_WIDTH; // move column right
@@ -214,6 +242,8 @@ void Dashboard::DisplayGeneralInfoSection(String dayStamp, String timeStamp)
 
 void Dashboard::DrawDashboard(int rssi, String dayStamp, String timeStamp)
 {
+    epd_poweron();
+
     epd_clear();
     
     DisplayStatusSection(rssi);
@@ -226,8 +256,50 @@ void Dashboard::DrawDashboard(int rssi, String dayStamp, String timeStamp)
     DrawBottomBar();
 
     epd_update();
+
+    epd_poweroff();
 }
 
+
+void Dashboard::ClearRTCData()
+{
+    int index;
+
+    for(index = 0; index < MAX_ACTUATOR_COUNT; index++)
+    {
+        actuatorsStateArray[index] = false;
+    }
+
+    for(index = 0; index < MAX_SENSORS_COUNT; index++)
+    {
+        sensorsStateArray[index] = false;
+    }
+
+    for(index = 0; index < MAX_FLOAT_SENSORS_COUNT; index++)
+    {
+        floatSensorsStateArray[index] = 0.0;
+    }
+
+}
+
+bool Dashboard::IsDeepSleepWakeupReason()
+{
+    bool retval = false;
+
+	esp_sleep_wakeup_cause_t wakeup_reason;
+	wakeup_reason = esp_sleep_get_wakeup_cause();
+
+    switch(wakeup_reason){
+        case ESP_SLEEP_WAKEUP_EXT0 : 
+        case ESP_SLEEP_WAKEUP_EXT1 : 
+        case ESP_SLEEP_WAKEUP_TIMER : 
+        case ESP_SLEEP_WAKEUP_TOUCHPAD : 
+        case ESP_SLEEP_WAKEUP_ULP : retval = true; break;
+        default : break;
+    }    
+
+    return retval;
+}
 
 void Dashboard::ClearLists()
 {
