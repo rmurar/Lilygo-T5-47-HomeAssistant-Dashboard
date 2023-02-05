@@ -5,7 +5,8 @@
 #define MAX_SENSORS_COUNT           (8)
 #define MAX_FLOAT_SENSORS_COUNT     (6)
 
-enum class ActuatorState {ON, OFF, ERROR, UNAVAILABLE};
+enum class EntityState {UNKNOWN, ON, OFF, ERROR, UNAVAILABLE};
+
 enum class ActuatorType {SWITCH, LIGHT, EXFAN, FAN, AIRPURIFIER, WATERHEATER, PLUG, AIRCONDITIONER, PLANT};
 
 enum class SensorValueType {ONOFF, VALUE};

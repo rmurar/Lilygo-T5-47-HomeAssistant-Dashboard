@@ -70,3 +70,8 @@ void drawImage(int x, int y, int width, int height, const uint8_t* image_data) {
 void epd_update() {
   epd_draw_grayscale_image(epd_full_screen(), framebuffer); // Update the screen
 }
+
+void epd_update_area(const Rect_t& area)
+{
+    epd_draw_grayscale_image(area, framebuffer); // Update the area
+}

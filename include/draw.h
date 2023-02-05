@@ -33,8 +33,8 @@ Rect_t GetSensorTileRect(int x, int y);
 
 Rect_t DrawTile(int x, int y, int width, int height, const uint8_t *image_data, String state, String label);
 Rect_t DrawSensorTile(int x, int y, int width, int height, const uint8_t* image_data, String label);
-Rect_t DrawTile(int x, int y, ActuatorState state, ActuatorType type, String name, String value);
-void DrawSensorTile(int x, int y, ActuatorState state, SensorType type, String name);
+Rect_t DrawTile(int x, int y, EntityState state, ActuatorType type, String name, String value);
+void DrawSensorTile(int x, int y, EntityState state, SensorType type, String name);
 void DrawBottomTile(int x, int y, String value, String name);
 void DrawBottomBar();
 void DrawSwitchBar();

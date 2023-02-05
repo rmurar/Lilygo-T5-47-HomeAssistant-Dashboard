@@ -15,7 +15,7 @@
 HTTPClient http;
 WiFiClientSecure client;
 
-ActuatorState checkOnOffState(String entity)
+EntityState checkOnOffState(String entity)
 {
     String api_url = ha_server + "/api/states/" + entity;
     http.begin(api_url);
@@ -24,7 +24,7 @@ ActuatorState checkOnOffState(String entity)
     if (code != HTTP_CODE_OK)
     {
         Serial.println("Error '" + String(code) + "' connecting to HA API: " + api_url);
-        return ActuatorState::ERROR;
+        return EntityState::ERROR;
     }
     DynamicJsonDocument doc(4096);
     DeserializationError error = deserializeJson(doc, http.getStream());
@@ -33,17 +33,47 @@ ActuatorState checkOnOffState(String entity)
     {
         Serial.print(F("deserializeJson() failed: "));
         Serial.println(error.f_str());
-        return ActuatorState::ERROR;
+        return EntityState::ERROR;
     }
     String state = doc["state"];
     Serial.println("  - " + entity + " state: " + state);
     if (state == "on"){
-        return ActuatorState::ON;
+        return EntityState::ON;
     }
     if (state == "unavailable"){
-        return ActuatorState::UNAVAILABLE;
+        return EntityState::UNAVAILABLE;
     }
-    return ActuatorState::OFF;
+    return EntityState::OFF;
+}
+
+void setOnOffState(String entity, bool on)
+{
+    String strPayload;
+    String api_url = ha_server + "/api/states/" + entity;
+    http.begin(api_url);
+    http.addHeader("Authorization", "Bearer " + ha_token);
+    http.addHeader("content-type", "application/json");
+
+    strPayload = "{\"state\":";
+    if(on)
+    {
+        strPayload += "\"on\"";
+    }
+    else
+    {
+        strPayload += "\"off\"";
+    }
+    strPayload += "}";
+
+    int code = http.POST(strPayload);
+    if (code != HTTP_CODE_OK)
+    {
+        Serial.println("Error '" + String(code) + "' connecting to HA API: " + api_url);
+    }
+    else
+    {
+        Serial.println("Execute OK:" + api_url);
+    }
 }
 
 HAConfigurations getHaStatus()

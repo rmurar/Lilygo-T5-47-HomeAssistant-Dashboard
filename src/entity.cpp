@@ -46,6 +46,8 @@
 
 void Actuator::Draw(Entity::DrawType type)
 {
+    bool localUpdate = false;
+
     setFont(OpenSans9B);
     if(GetName() != "") {
         ActuatorType type = GetType();
@@ -57,13 +59,42 @@ void Actuator::Draw(Entity::DrawType type)
             type == ActuatorType::AIRPURIFIER ||
             type == ActuatorType::WATERHEATER ||
             type == ActuatorType::AIRCONDITIONER)
-        {            
-            DrawTile(m_rectangle.x, m_rectangle.y, checkOnOffState(GetId()), GetType(), GetName(), "");
+        {   
+            if(localUpdate)
+            {
+                epd_clear_area(m_rectangle);
+            }
+
+            DrawTile(m_rectangle.x, m_rectangle.y, m_state, m_actuatorType, m_name, "");
+
+            if(m_touchType == TouchType::SINGLE)
+            {
+                int x, y, r;
+                x = m_rectangle.x + m_rectangle.width - 10;
+                y = m_rectangle.y + m_rectangle.height - 10;
+                r = 4;
+                fillCircle(x, y, r, Black);
+            }
+
+            if(localUpdate)
+            {
+                epd_update_area(m_rectangle);
+            }
         }
         else 
         {
+            if(localUpdate)
+            {
+                epd_clear_area(m_rectangle);
+            }
+
             String val = getSensorValue(GetId());
-            DrawTile(m_rectangle.x, m_rectangle.y, ActuatorState::UNAVAILABLE, GetType(), GetName(), val);
+            DrawTile(m_rectangle.x, m_rectangle.y, EntityState::UNAVAILABLE, GetType(), GetName(), val);
+
+            if(localUpdate)
+            {
+               epd_update_area(m_rectangle);
+            }
         }
     }
 }   
@@ -78,7 +109,11 @@ void Sensor::Draw(Entity::DrawType type)
             m_sensorType == SensorType::MOTION )
         {
             if (GetName() != "") {
-                DrawSensorTile(m_rectangle.x, m_rectangle.y,checkOnOffState(GetId()), m_sensorType, GetName());
+                EntityState state;
+                if(GetState(state) == true)
+                { 
+                    DrawSensorTile(m_rectangle.x, m_rectangle.y, state, m_sensorType, GetName());
+                }
             }
         }
     }

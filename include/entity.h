@@ -25,9 +25,17 @@ public:
         PUSHED
     };
 
+    enum class TouchType
+    {
+        NO_TOUCH,
+        SINGLE
+    };
+
     Entity(String name, String id, EntityType type)
     : m_entityType(type),
-      m_name(name), m_id(id)
+      m_name(name), m_id(id),
+      m_touchType(TouchType::NO_TOUCH),
+      m_changed(false)
     {
 
     }
@@ -57,6 +65,28 @@ public:
         return m_rectangle;
     }
 
+    void SetTouchType(TouchType type)
+    {
+        m_touchType = type;
+    }
+
+    TouchType GetTouchType() const
+    {
+        return m_touchType;
+    }
+
+    bool IsInRectangle(int x, int y) const
+    {
+        if((x > m_rectangle.x) && (x < (m_rectangle.x + m_rectangle.width)) &&
+           (y > m_rectangle.y) && (y < (m_rectangle.y + m_rectangle.height))
+          )
+        {
+            return true;
+        }
+
+        return false;
+    }
+
     virtual void Draw(Entity::DrawType type = Entity::DrawType::NORMAL)
     {
         //empty
@@ -67,6 +97,9 @@ protected:
     String m_name;
     String m_id;
     Rect_t m_rectangle;
+    TouchType m_touchType;
+
+    bool m_changed;
 
 };
 
@@ -75,7 +108,7 @@ class Sensor: public Entity
 public:
     union SensorValue
     {
-        bool m_binaryValue;
+        EntityState m_state;
         float m_floatValue;
     };
 
@@ -96,11 +129,11 @@ public:
         return m_valueType;
     }
 
-    bool GetValue(bool& value)
+    bool GetState(EntityState& state)
     {
         if(m_valueType == SensorValueType::ONOFF)
         {
-            value = m_value.m_binaryValue;
+            state = m_value.m_state;
             return true;
         }
 
@@ -117,6 +150,24 @@ public:
         }
 
         return false;
+    }
+
+    void SetState(const EntityState& state, bool changed)
+    {
+        if(m_valueType == SensorValueType::ONOFF)
+        {
+            m_value.m_state = state;
+            m_changed = changed;
+        }
+    }
+
+    void SetValue(float value, bool changed)
+    {
+        if(m_valueType == SensorValueType::VALUE)
+        {
+            m_value.m_floatValue = value;
+            m_changed = changed;
+        }
     }
 
     void Draw(Entity::DrawType type = Entity::DrawType::NORMAL);
@@ -146,18 +197,22 @@ public:
         return m_actuatorType;
     }
 
-    ActuatorState GetState() const
+    EntityState GetState() const
     {
         return m_state;
     }
 
-
+    void SetState(const EntityState& state, bool changed)
+    {
+        m_state = state;
+        m_changed = changed;
+    }
 
     void Draw(Entity::DrawType type = Entity::DrawType::NORMAL);   
 
 protected:
     ActuatorType m_actuatorType;
-    ActuatorState m_state;
+    EntityState m_state;
 
 };
 

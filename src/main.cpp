@@ -201,12 +201,7 @@ void setup() {
     print_wakeup_reason();
 
     dashboard.Init();
-
-//    while(digitalRead(Dashboard::TOUCH_PANEL_INT))
-//    {
-//        Serial.printf("Touch panel int\n");
-        dashboard.ScanTouchPoint();
-//    }
+    dashboard.ScanTouchEvent();
 
     if (StartWiFi() == WL_CONNECTED) {
 /*
@@ -226,8 +221,8 @@ void setup() {
             dashboard.DrawDashboard(wifi_signal, dayStamp, timeStamp);
             //DrawHAScreen(wifi_signal, dayStamp, timeStamp);
         }
-*/        
-        dashboard.DrawDashboard(wifi_signal, dayStamp, timeStamp);
+*/      
+        dashboard.RefreshDashboard();
 
     }
     else {
@@ -236,14 +231,19 @@ void setup() {
     
     //sleep(5);
 
-    //BeginSleep();
-    start_deep_sleep_with_wakeup_sources();
+    //don't sleep if entity touch event is handled,
+    //need to display updated entity status
+    if(!dashboard.IsTouchEvent())
+    {
+        //BeginSleep();
+        start_deep_sleep_with_wakeup_sources();
+    }
 }
 
 void loop() {    
 
   //test
-#if 1
+#if 0
     if(!WiFi.isConnected())
     {
         //try to connect
@@ -258,12 +258,27 @@ void loop() {
 
     if(WiFi.isConnected())
     {
-        dashboard.DrawDashboard(wifi_signal, dayStamp, timeStamp);
+        dashboard.RefreshDashboard();
     }
 
     sleep(20);
 
 #endif
+
+    if(WiFi.isConnected())
+    {
+        //handle touch event
+        dashboard.HandleTouchEvent();
+
+        //refresh the screen
+        dashboard.RefreshDashboard();
+    }
+    else
+    {
+        dashboard.DrawWifiErrorScreen(wifi_signal);
+    }
+
+    start_deep_sleep_with_wakeup_sources();
 
 }
 

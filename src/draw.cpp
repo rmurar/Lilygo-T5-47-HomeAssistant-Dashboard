@@ -75,6 +75,7 @@ Rect_t GetTileRect(int x, int y)
 Rect_t GetSensorTileRect(int x, int y, int width, int height)
 {
     Rect_t area = {.x = x, .y = y, .width = width, .height = height};
+    return area;
 }
 
 Rect_t GetSensorTileRect(int x, int y)
@@ -129,7 +130,7 @@ Rect_t DrawSensorTile(int x, int y, int width, int height, const uint8_t* image_
   return area;
 }
 
-Rect_t DrawTile(int x, int y, ActuatorState state, ActuatorType type, String name, String value)
+Rect_t DrawTile(int x, int y, EntityState state, ActuatorType type, String name, String value)
 {
     int tile_width = TILE_WIDTH - TILE_GAP; 
     int tile_height = TILE_HEIGHT - TILE_GAP;
@@ -137,48 +138,48 @@ Rect_t DrawTile(int x, int y, ActuatorState state, ActuatorType type, String nam
     Rect_t area = {.x = x, .y = y, .width = tile_width, .height = tile_height};
 
     String state_txt = "OFF";
-    if (state == ActuatorState::ON) state_txt = "ON"; 
-    else if (state == ActuatorState::UNAVAILABLE) state_txt = "UNAVAILABLE"; 
+    if (state == EntityState::ON) state_txt = "ON"; 
+    else if (state == EntityState::UNAVAILABLE) state_txt = "UNAVAILABLE"; 
     switch (type)
     {
     case ActuatorType::SWITCH:
-        if (state == ActuatorState::ON) DrawTile(x,y,tile_width,tile_height,switchon_data, name, state_txt); 
-        else if (state == ActuatorState::OFF) DrawTile(x,y,tile_width,tile_height,switchoff_data, name, state_txt); 
+        if (state == EntityState::ON) DrawTile(x,y,tile_width,tile_height,switchon_data, name, state_txt); 
+        else if (state == EntityState::OFF) DrawTile(x,y,tile_width,tile_height,switchoff_data, name, state_txt); 
         else DrawTile(x,y,tile_width,tile_height,warning_data, name, "SWITCH"); 
         break;
     case ActuatorType::LIGHT:
-        if (state == ActuatorState::ON)  DrawTile(x,y,tile_width,tile_height,lightbulbon_data,name, state_txt);
-        else if (state == ActuatorState::OFF)  DrawTile(x,y,tile_width,tile_height,lightbulboff_data,name, state_txt);
+        if (state == EntityState::ON)  DrawTile(x,y,tile_width,tile_height,lightbulbon_data,name, state_txt);
+        else if (state == EntityState::OFF)  DrawTile(x,y,tile_width,tile_height,lightbulboff_data,name, state_txt);
         else DrawTile(x,y,tile_width,tile_height,warning_data, name, "LIGHT"); 
         break;
     case ActuatorType::FAN:
-        if (state == ActuatorState::ON)  DrawTile(x,y,tile_width,tile_height,fanon_data,name, state_txt);
-        else if (state == ActuatorState::OFF)  DrawTile(x,y,tile_width,tile_height,fanoff_data,name, state_txt);
+        if (state == EntityState::ON)  DrawTile(x,y,tile_width,tile_height,fanon_data,name, state_txt);
+        else if (state == EntityState::OFF)  DrawTile(x,y,tile_width,tile_height,fanoff_data,name, state_txt);
         else DrawTile(x,y,tile_width,tile_height,warning_data, name, "FAN"); 
         break;
     case ActuatorType::EXFAN:
-        if (state == ActuatorState::ON)  DrawTile(x,y,tile_width,tile_height,exhaustfanon_data,name, state_txt);
-        else if (state == ActuatorState::OFF)  DrawTile(x,y,tile_width,tile_height,exhaustfanoff_data,name, state_txt);
+        if (state == EntityState::ON)  DrawTile(x,y,tile_width,tile_height,exhaustfanon_data,name, state_txt);
+        else if (state == EntityState::OFF)  DrawTile(x,y,tile_width,tile_height,exhaustfanoff_data,name, state_txt);
         else DrawTile(x,y,tile_width,tile_height,warning_data, name, "EXHAUST FAN"); 
         break;
     case ActuatorType::AIRPURIFIER:
-        if (state == ActuatorState::ON)  DrawTile(x,y,tile_width,tile_height,airpurifieron_data,name, state_txt);
-        else if (state == ActuatorState::OFF)  DrawTile(x,y,tile_width,tile_height,airpurifieroff_data,name, state_txt);
+        if (state == EntityState::ON)  DrawTile(x,y,tile_width,tile_height,airpurifieron_data,name, state_txt);
+        else if (state == EntityState::OFF)  DrawTile(x,y,tile_width,tile_height,airpurifieroff_data,name, state_txt);
         else DrawTile(x,y,tile_width,tile_height,warning_data, name, "AIR PURIFIER"); 
         break;
     case ActuatorType::WATERHEATER:
-        if (state == ActuatorState::ON)  DrawTile(x,y,tile_width,tile_height,waterheateron_data,name, state_txt);
-        else if (state == ActuatorState::OFF)  DrawTile(x,y,tile_width,tile_height,waterheateroff_data,name, state_txt);
+        if (state == EntityState::ON)  DrawTile(x,y,tile_width,tile_height,waterheateron_data,name, state_txt);
+        else if (state == EntityState::OFF)  DrawTile(x,y,tile_width,tile_height,waterheateroff_data,name, state_txt);
         else DrawTile(x,y,tile_width,tile_height,warning_data, name, "WATER HEATER"); 
         break;
     case ActuatorType::PLUG:
-        if (state == ActuatorState::ON)  DrawTile(x,y,tile_width,tile_height,plugon_data,name, state_txt);
-        else if (state == ActuatorState::OFF)  DrawTile(x,y,tile_width,tile_height,plugoff_data,name, state_txt);
+        if (state == EntityState::ON)  DrawTile(x,y,tile_width,tile_height,plugon_data,name, state_txt);
+        else if (state == EntityState::OFF)  DrawTile(x,y,tile_width,tile_height,plugoff_data,name, state_txt);
         else DrawTile(x,y,tile_width,tile_height,warning_data, name, "PLUG"); 
         break;
     case ActuatorType::AIRCONDITIONER:
-        if (state == ActuatorState::ON)  DrawTile(x,y,tile_width,tile_height,airconditioneron_data,name, state_txt);
-        else if (state == ActuatorState::OFF)  DrawTile(x,y,tile_width,tile_height,airconditioneroff_data,name, state_txt);
+        if (state == EntityState::ON)  DrawTile(x,y,tile_width,tile_height,airconditioneron_data,name, state_txt);
+        else if (state == EntityState::OFF)  DrawTile(x,y,tile_width,tile_height,airconditioneroff_data,name, state_txt);
         else DrawTile(x,y,tile_width,tile_height,warning_data, name, "AIR CONDITIONER"); 
     break;
     case ActuatorType::PLANT:
@@ -196,20 +197,20 @@ Rect_t DrawTile(int x, int y, ActuatorState state, ActuatorType type, String nam
     return area;
 }
 
-void DrawSensorTile(int x, int y, ActuatorState state, SensorType type, String name)
+void DrawSensorTile(int x, int y, EntityState state, SensorType type, String name)
 {
     int tile_width = SENSOR_TILE_WIDTH - TILE_GAP; 
     int tile_height = SENSOR_TILE_HEIGHT - TILE_GAP;
     switch (type)
     {
     case SensorType::DOOR:
-        if (state == ActuatorState::ON) DrawSensorTile(x,y,tile_width,tile_height,dooropen_data, name); 
-        else if (state == ActuatorState::OFF) DrawSensorTile(x,y,tile_width,tile_height,doorclosed_data, name); 
+        if (state == EntityState::ON) DrawSensorTile(x,y,tile_width,tile_height,dooropen_data, name); 
+        else if (state == EntityState::OFF) DrawSensorTile(x,y,tile_width,tile_height,doorclosed_data, name); 
         else DrawSensorTile(x,y,tile_width,tile_height,sensorerror_data, name); 
         break;
     case SensorType::MOTION:
-        if (state == ActuatorState::ON) DrawSensorTile(x,y,tile_width,tile_height,motionsensoron_data, name); 
-        else if (state == ActuatorState::OFF) DrawSensorTile(x,y,tile_width,tile_height,motionsensoroff_data, name); 
+        if (state == EntityState::ON) DrawSensorTile(x,y,tile_width,tile_height,motionsensoron_data, name); 
+        else if (state == EntityState::OFF) DrawSensorTile(x,y,tile_width,tile_height,motionsensoroff_data, name); 
         else DrawSensorTile(x,y,tile_width,tile_height,sensorerror_data, name); 
         break;
     default:
@@ -297,7 +298,7 @@ void DrawSwitchBar()
           else 
           {
               String val = getSensorValue(haActuators[i].id);
-              DrawTile(x, y, ActuatorState::UNAVAILABLE, haActuators[i].type, haActuators[i].name, val);
+              DrawTile(x, y, EntityState::UNAVAILABLE, haActuators[i].type, haActuators[i].name, val);
           }
         }
       

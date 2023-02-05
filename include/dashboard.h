@@ -16,8 +16,8 @@ class Dashboard
 public:
     static const gpio_num_t TOUCH_PANEL_INT;
 
-    static RTC_DATA_ATTR bool actuatorsStateArray[MAX_ACTUATOR_COUNT];
-    static RTC_DATA_ATTR bool sensorsStateArray[MAX_SENSORS_COUNT];
+    static RTC_DATA_ATTR EntityState actuatorsStateArray[MAX_ACTUATOR_COUNT];
+    static RTC_DATA_ATTR EntityState sensorsStateArray[MAX_SENSORS_COUNT];
     static RTC_DATA_ATTR float floatSensorsStateArray[MAX_FLOAT_SENSORS_COUNT];
 
     Dashboard();
@@ -37,21 +37,36 @@ public:
     void DrawWifiErrorScreen(int rssi);
     void DisplayGeneralInfoSection(String dayStamp, String timeStamp);
 
-    void DrawDashboard(int rssi, String dayStamp, String timeStamp);
-
-    void ScanTouchPoint();
+    void ScanTouchEvent();
+    void HandleTouchEvent();
 
     void ClearRTCData();
     bool IsDeepSleepWakeupReason();
+    
+    /*
+        Touch event on displayed entity
+    */
+    bool IsTouchEvent();
+
+    void RefreshDashboard();
 
 private:
     void ClearLists();
+
+    /*
+        Get entity values from HomeAssistant over homeassistant api
+    */
+    void GetValuesDashboard();
+    
+    void DrawDashboard(int rssi, String dayStamp, String timeStamp);
 
     std::vector<Sensor *> m_SensorsList;
     std::vector<Sensor *> m_FloatSensorsList;
     std::vector<Actuator *> m_AcuatorsList;
 
     TouchClass m_touchClass;
+
+    bool m_flagTouchEvent;
 };
 
 

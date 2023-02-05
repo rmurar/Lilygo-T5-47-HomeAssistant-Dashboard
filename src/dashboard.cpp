@@ -1,4 +1,7 @@
 
+// wifi
+#include <WiFi.h>
+
 // epd
 #include "epd_driver.h"
 
@@ -47,11 +50,12 @@
 
 const gpio_num_t Dashboard::TOUCH_PANEL_INT = GPIO_NUM_13;
 
-RTC_DATA_ATTR bool Dashboard::actuatorsStateArray[MAX_ACTUATOR_COUNT];
-RTC_DATA_ATTR bool Dashboard::sensorsStateArray[MAX_SENSORS_COUNT];
+RTC_DATA_ATTR EntityState Dashboard::actuatorsStateArray[MAX_ACTUATOR_COUNT];
+RTC_DATA_ATTR EntityState Dashboard::sensorsStateArray[MAX_SENSORS_COUNT];
 RTC_DATA_ATTR float Dashboard::floatSensorsStateArray[MAX_FLOAT_SENSORS_COUNT];
 
 Dashboard::Dashboard()
+: m_flagTouchEvent(false)
 {
     m_SensorsList.reserve(20);
     m_FloatSensorsList.reserve(20);
@@ -232,6 +236,7 @@ void Dashboard::DisplayStatusSection(int rssi)
   setFont(OpenSans8B);
   DrawBattery(5, 18);
   DrawRSSI(900, 18, rssi);
+
 }
 
 void Dashboard::DrawWifiErrorScreen(int rssi)
@@ -250,8 +255,94 @@ void Dashboard::DisplayGeneralInfoSection(String dayStamp, String timeStamp)
     drawString(EPD_WIDTH/2, 18, dayStamp + " - " +  timeStamp + " (HA Ver:" + haConfigs.version + "/" + haConfigs.haStatus + ", TZ:" + haConfigs.timeZone + ")", CENTER);
 }
 
+
+void Dashboard::GetValuesDashboard()
+{
+
+    EntityState state;
+    SensorValueType value_type;
+    float value;
+    int index1, index2;
+    bool changed;
+    bool storeInitialValues = false;
+
+    if(!IsDeepSleepWakeupReason())
+    {
+        //power cycle
+        storeInitialValues = true;
+    }
+
+    index1 = 0;
+    for(Actuator* actuator: m_AcuatorsList){
+        state = checkOnOffState(actuator->GetId());
+
+        changed = false;
+        if(index1 < MAX_ACTUATOR_COUNT)
+        {        
+            if(storeInitialValues || (actuatorsStateArray[index1] != state))
+            {
+                //store initial value after power cycle
+                //or store last known state
+                actuatorsStateArray[index1] = state;
+                changed = true;
+            }
+        }
+        
+        actuator->SetState(state, changed);
+        index1++;
+    }
+
+    index1 = 0;
+    index2 = 0;
+    for(Sensor* sensor: m_SensorsList)
+    {
+        value_type = sensor->GetValueType();
+        if(value_type == SensorValueType::ONOFF)
+        {
+            state = checkOnOffState(sensor->GetId());
+
+            changed = false;
+            if(index1 < MAX_SENSORS_COUNT)
+            {
+                if(storeInitialValues || (sensorsStateArray[index1] != state))
+                {
+                    //store initial value after power cycle
+                    //or store last known state
+                    sensorsStateArray[index1] = state;
+                    changed = true;                    
+                }
+            }
+
+            sensor->SetState(state, changed);
+            index1++;
+        }
+        else if(value_type == SensorValueType::VALUE)
+        {
+            value = getSensorFloatValue(sensor->GetId());
+
+            changed = false;
+            if(index2 < MAX_FLOAT_SENSORS_COUNT)
+            {
+                if(storeInitialValues || (floatSensorsStateArray[index2] != value))
+                {
+                    //store initial value after power cycle
+                    //or store last known state
+                    floatSensorsStateArray[index2] = value;
+                    changed = true;                    
+                }                
+            }
+
+            sensor->SetValue(value, changed);
+            index2++;
+        }
+    }
+
+
+}
+
 void Dashboard::DrawDashboard(int rssi, String dayStamp, String timeStamp)
 {
+#if 1
     epd_poweron();
 
     epd_clear();
@@ -268,13 +359,47 @@ void Dashboard::DrawDashboard(int rssi, String dayStamp, String timeStamp)
     epd_update();
 
     epd_poweroff();
+#else
+    epd_poweron();
+
+    Rect_t area = {.x = 0, .y = 0, .width = EPD_WIDTH, .height = 20};
+    epd_clear_area(area);
+
+    DisplayStatusSection(rssi);
+    DisplayGeneralInfoSection(dayStamp, timeStamp);
+
+    epd_update_area(area);
+
+
+    Serial.println("Drawing switchBar...");
+    DrawSwitchBar();
+/*
+    Serial.println("Drawing sensorBar...");
+    DrawSensorBar();
+    Serial.println("Drawing bottomBar...");
+    DrawBottomBar();
+*/
+
+    epd_poweroff();
+#endif
 }
 
-void Dashboard::ScanTouchPoint()
+void Dashboard::RefreshDashboard()
+{
+    int wifi_signal = WiFi.RSSI();
+
+    GetValuesDashboard();
+    DrawDashboard(wifi_signal, "", "");
+}
+
+void Dashboard::ScanTouchEvent()
 {
     uint16_t x, y;
 	esp_sleep_wakeup_cause_t wakeup_reason;
 	wakeup_reason = esp_sleep_get_wakeup_cause();    
+
+    m_flagTouchEvent = false;
+
 
     if(wakeup_reason == ESP_SLEEP_WAKEUP_EXT0)
     {
@@ -284,8 +409,47 @@ void Dashboard::ScanTouchPoint()
             y = EPD_HEIGHT - y;
 
             Serial.printf("%ld: x=%d, y=%d\n", millis(), x, y);
+        
+            for(Actuator* actuator: m_AcuatorsList){
+                if(actuator->IsInRectangle(x, y))
+                {
+                    actuator->SetTouchType(Entity::TouchType::SINGLE);
+                    Serial.printf("Touch event on entity: %s\n", actuator->GetId().c_str());
+                    m_flagTouchEvent = true;
+                }
+            }
         }
     }
+}
+
+void Dashboard::HandleTouchEvent()
+{
+    Entity::TouchType touchType;
+    EntityState state;
+
+    if(m_flagTouchEvent)
+    {
+        for(Actuator* actuator: m_AcuatorsList)
+        {
+            touchType = actuator->GetTouchType();
+            if(touchType == Entity::TouchType::SINGLE)
+            {
+                Serial.printf("Handle touch event on entity: %s\n", actuator->GetId().c_str());
+                state = actuator->GetState();
+                if(state == EntityState::OFF)
+                {
+                    setOnOffState(actuator->GetId(), true);
+                }
+                else if(state == EntityState::ON)
+                {
+                    setOnOffState(actuator->GetId(), false);
+                }
+
+                actuator->SetTouchType(Entity::TouchType::NO_TOUCH);
+            }
+        }
+    }
+
 }
 
 void Dashboard::ClearRTCData()
@@ -294,12 +458,12 @@ void Dashboard::ClearRTCData()
 
     for(index = 0; index < MAX_ACTUATOR_COUNT; index++)
     {
-        actuatorsStateArray[index] = false;
+        actuatorsStateArray[index] = EntityState::UNKNOWN;
     }
 
     for(index = 0; index < MAX_SENSORS_COUNT; index++)
     {
-        sensorsStateArray[index] = false;
+        sensorsStateArray[index] = EntityState::UNKNOWN;
     }
 
     for(index = 0; index < MAX_FLOAT_SENSORS_COUNT; index++)
@@ -313,8 +477,8 @@ bool Dashboard::IsDeepSleepWakeupReason()
 {
     bool retval = false;
 
-	esp_sleep_wakeup_cause_t wakeup_reason;
-	wakeup_reason = esp_sleep_get_wakeup_cause();
+    esp_sleep_wakeup_cause_t wakeup_reason;
+    wakeup_reason = esp_sleep_get_wakeup_cause();
 
     switch(wakeup_reason){
         case ESP_SLEEP_WAKEUP_EXT0 : 
@@ -326,6 +490,11 @@ bool Dashboard::IsDeepSleepWakeupReason()
     }    
 
     return retval;
+}
+
+bool Dashboard::IsTouchEvent()
+{
+    return m_flagTouchEvent;
 }
 
 void Dashboard::ClearLists()

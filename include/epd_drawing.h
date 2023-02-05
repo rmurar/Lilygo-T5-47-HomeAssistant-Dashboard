@@ -23,5 +23,6 @@ void fillTriangle(int16_t x0, int16_t y0, int16_t x1, int16_t y1,
 void drawPixel(int x, int y, uint8_t color);
 void drawImage(int x, int y, int width, int height, const uint8_t* image_data);
 void epd_update();
+void epd_update_area(const Rect_t& area);
 
 #endif // __EPD_DRAWING_H__
