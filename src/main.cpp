@@ -1,4 +1,5 @@
 #include <Arduino.h>
+#include <stdlib.h>
 
 // esp32 sdk imports
 #include "esp_heap_caps.h"
@@ -56,10 +57,12 @@ int wifi_signal = 0;
 WiFiUDP ntpUDP;
 NTPClient timeClient(ntpUDP);
 String formattedDate;
-String dayStamp;
-String timeStamp;
+String dayStamp = "";
+String timeStamp = "";
 
 Dashboard dashboard;
+
+gpio_num_t TOUCH_PANEL_INT = GPIO_NUM_13;
 
 /*
 struct EntityState
@@ -119,19 +122,20 @@ void StopWiFi() {
 
 void SetupTime()
 {
-    Serial.println("Getting time...");
+        Serial.println("Getting time...");
 
-    while(!timeClient.update()) {
-        timeClient.forceUpdate();
-    }
-    formattedDate = timeClient.getFormattedDate();
-    int splitT = formattedDate.indexOf("T");
-    dayStamp = formattedDate.substring(0, splitT);
-    timeStamp = formattedDate.substring(splitT+1, formattedDate.length()-1);
+        while(!timeClient.update()) {
+            timeClient.forceUpdate();
+        }
+        formattedDate = timeClient.getFormattedDate();
+        int splitT = formattedDate.indexOf("T");
+        dayStamp = formattedDate.substring(0, splitT);
+        timeStamp = formattedDate.substring(splitT+1, formattedDate.length()-1);
 
-    CurrentHour = timeClient.getHours();
-    CurrentMin  = timeClient.getMinutes();
-    CurrentSec  = timeClient.getSeconds();
+        CurrentHour = timeClient.getHours();
+        CurrentMin  = timeClient.getMinutes();
+        CurrentSec  = timeClient.getSeconds();
+
 }
 
 void InitialiseSystem() {
@@ -157,12 +161,55 @@ void BeginSleep() {
   esp_deep_sleep_start();  // Sleep for e.g. 30 minutes
 }
 
+/**
+ * Powers off everything into deepsleep so device and display.
+ */
+void start_deep_sleep_with_wakeup_sources()
+{
+    long sleepTime = 60;
+
+    epd_poweroff_all();
+    delay(400);
+    esp_sleep_enable_ext0_wakeup(Dashboard::TOUCH_PANEL_INT, 1);
+
+    esp_sleep_enable_timer_wakeup(sleepTime * 1000000LL);
+
+    Serial.println("Sending device to deepsleep for " + String(sleepTime) + " secs");
+    esp_deep_sleep_start();
+}
+
+
+/**
+ * Function that prints the reason by which ESP32 has been awaken from sleep
+ */
+void print_wakeup_reason(){
+	esp_sleep_wakeup_cause_t wakeup_reason;
+	wakeup_reason = esp_sleep_get_wakeup_cause();
+    switch(wakeup_reason){
+        case ESP_SLEEP_WAKEUP_EXT0 : Serial.println("Wakeup caused by external signal using RTC_IO"); break;
+        case ESP_SLEEP_WAKEUP_EXT1 : Serial.println("Wakeup caused by external signal using RTC_CNTL"); break;
+        case ESP_SLEEP_WAKEUP_TIMER : Serial.println("Wakeup caused by timer"); break;
+        case ESP_SLEEP_WAKEUP_TOUCHPAD : Serial.println("Wakeup caused by touchpad"); break;
+        case ESP_SLEEP_WAKEUP_ULP : Serial.println("Wakeup caused by ULP program"); break;
+        default : Serial.printf("Wakeup was not caused by deep sleep: %d\n",wakeup_reason); break;
+    }
+}
+
 void setup() {
     InitialiseSystem();
 
-    dashboard.ParseConfiguration();
+    print_wakeup_reason();
+
+    dashboard.Init();
+
+//    while(digitalRead(Dashboard::TOUCH_PANEL_INT))
+//    {
+//        Serial.printf("Touch panel int\n");
+        dashboard.ScanTouchPoint();
+//    }
 
     if (StartWiFi() == WL_CONNECTED) {
+/*
         SetupTime();
         bool WakeUp = false;
 
@@ -179,15 +226,44 @@ void setup() {
             dashboard.DrawDashboard(wifi_signal, dayStamp, timeStamp);
             //DrawHAScreen(wifi_signal, dayStamp, timeStamp);
         }
+*/        
+        dashboard.DrawDashboard(wifi_signal, dayStamp, timeStamp);
+
     }
     else {
         dashboard.DrawWifiErrorScreen(wifi_signal);
     }
     
-    BeginSleep();
+    //sleep(5);
+
+    //BeginSleep();
+    start_deep_sleep_with_wakeup_sources();
 }
 
 void loop() {    
-  // nothing to do here
+
+  //test
+#if 1
+    if(!WiFi.isConnected())
+    {
+        //try to connect
+        if (StartWiFi() == WL_CONNECTED) {
+            SetupTime();
+        }
+        else 
+        {
+            dashboard.DrawWifiErrorScreen(wifi_signal);
+        }
+    }
+
+    if(WiFi.isConnected())
+    {
+        dashboard.DrawDashboard(wifi_signal, dayStamp, timeStamp);
+    }
+
+    sleep(20);
+
+#endif
+
 }
 

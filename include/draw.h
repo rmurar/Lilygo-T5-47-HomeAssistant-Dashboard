@@ -26,9 +26,14 @@
 #define BOTTOM_TILE_WIDTH      320
 #define BOTTOM_TILE_HEIGHT     90
 
-void DrawTile(int x, int y, int width, int height, const uint8_t *image_data, String state, String label);
-void DrawSensorTile(int x, int y, int width, int height, const uint8_t* image_data, String label);
-void DrawTile(int x, int y, ActuatorState state, ActuatorType type, String name, String value);
+Rect_t GetTileRect(int x, int y, int width, int height);
+Rect_t GetTileRect(int x, int y);
+Rect_t GetSensorTileRect(int x, int y, int width, int height);
+Rect_t GetSensorTileRect(int x, int y);
+
+Rect_t DrawTile(int x, int y, int width, int height, const uint8_t *image_data, String state, String label);
+Rect_t DrawSensorTile(int x, int y, int width, int height, const uint8_t* image_data, String label);
+Rect_t DrawTile(int x, int y, ActuatorState state, ActuatorType type, String name, String value);
 void DrawSensorTile(int x, int y, ActuatorState state, SensorType type, String name);
 void DrawBottomTile(int x, int y, String value, String name);
 void DrawBottomBar();

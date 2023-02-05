@@ -56,8 +56,41 @@
 
 #include "draw.h"
 
+Rect_t GetTileRect(int x, int y, int width, int height)
+{
+    Rect_t area = {.x = x, .y = y, .width = width, .height = height};
+    return area;
+}
+
+Rect_t GetTileRect(int x, int y)
+{
+    int tile_width = TILE_WIDTH - TILE_GAP; 
+    int tile_height = TILE_HEIGHT - TILE_GAP;
+
+    Rect_t area = {.x = x, .y = y, .width = tile_width, .height = tile_height};
+    
+    return area;
+}
+
+Rect_t GetSensorTileRect(int x, int y, int width, int height)
+{
+    Rect_t area = {.x = x, .y = y, .width = width, .height = height};
+}
+
+Rect_t GetSensorTileRect(int x, int y)
+{
+    int tile_width = SENSOR_TILE_WIDTH - TILE_GAP; 
+    int tile_height = SENSOR_TILE_HEIGHT - TILE_GAP;
+
+    Rect_t area = {.x = x, .y = y, .width = tile_width, .height = tile_height};
+    
+    return area;
+}
+
+
+
 // this will place a tile on screen that includes icon, staus and name of the HA entity
-void DrawTile(int x, int y, int width, int height, const uint8_t *image_data, String state, String label)
+Rect_t DrawTile(int x, int y, int width, int height, const uint8_t *image_data, String state, String label)
 {
   // this assumes images are 100x100px size. make sure images are cropped to 100x100 before converting
   int image_x = int((width - TILE_IMG_WIDTH)/2) + x; 
@@ -66,30 +99,43 @@ void DrawTile(int x, int y, int width, int height, const uint8_t *image_data, St
   int top_txt_cursor_y = image_y + TILE_IMG_HEIGHT + 10 + 12;
   int bottom_txt_cursor_x = int(width / 2) + x;
   int bottom_txt_cursor_y = y + 21;
+
+  Rect_t area = {.x = x, .y = y, .width = width, .height = height};
+
   drawRect(x, y, width, height, Black);
   drawRect(x + 1, y + 1, width - 2, height - 2, Black);
   drawImage(image_x, image_y, TILE_IMG_WIDTH, TILE_IMG_HEIGHT, image_data);
   drawString(top_txt_cursor_x, top_txt_cursor_y, label, CENTER);
   drawString(bottom_txt_cursor_x, bottom_txt_cursor_y, state, CENTER);
+
+  return area;
 }
 
-void DrawSensorTile(int x, int y, int width, int height, const uint8_t* image_data, String label)
+Rect_t DrawSensorTile(int x, int y, int width, int height, const uint8_t* image_data, String label)
 {
   // this assumes images are 128x128px size. make sure images are cropped to 128x128 before converting
   int image_x = int((width - SENSOR_TILE_IMG_WIDTH)/2) + x; 
   int image_y = y + 10;  
   int txt_cursor_x = int(width/2) + x;
   int txt_cursor_y = image_y + SENSOR_TILE_IMG_HEIGHT + 10 + 12;
+
+  Rect_t area = {.x = x, .y = y, .width = width, .height = height};
+
   drawRect(x, y, width, height, Black);
   drawRect(x+1, y+1, width-2, height-2, Black);
   drawImage(image_x, image_y, SENSOR_TILE_IMG_WIDTH, SENSOR_TILE_IMG_HEIGHT, image_data);
   drawString(txt_cursor_x, txt_cursor_y, label, CENTER);
+
+  return area;
 }
 
-void DrawTile(int x, int y, ActuatorState state, ActuatorType type, String name, String value)
+Rect_t DrawTile(int x, int y, ActuatorState state, ActuatorType type, String name, String value)
 {
     int tile_width = TILE_WIDTH - TILE_GAP; 
     int tile_height = TILE_HEIGHT - TILE_GAP;
+
+    Rect_t area = {.x = x, .y = y, .width = tile_width, .height = tile_height};
+
     String state_txt = "OFF";
     if (state == ActuatorState::ON) state_txt = "ON"; 
     else if (state == ActuatorState::UNAVAILABLE) state_txt = "UNAVAILABLE"; 
@@ -146,6 +192,8 @@ void DrawTile(int x, int y, ActuatorState state, ActuatorType type, String name,
     default:
         break;
     }
+
+    return area;
 }
 
 void DrawSensorTile(int x, int y, ActuatorState state, SensorType type, String name)

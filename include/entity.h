@@ -6,6 +6,7 @@
 #include <string.h>
 
 #include "defines.h"
+#include "epd_driver.h"
 
 enum class EntityType 
 {
@@ -17,6 +18,13 @@ enum class EntityType
 class Entity
 {
 public:
+    enum class DrawType
+    {
+        NORMAL,
+        INACTIVE,
+        PUSHED
+    };
+
     Entity(String name, String id, EntityType type)
     : m_entityType(type),
       m_name(name), m_id(id)
@@ -39,10 +47,26 @@ public:
         return m_id;
     }
 
+    void SetRectangle(const Rect_t &rect)
+    {
+        m_rectangle = rect;
+    }
+
+    const Rect_t& GetRectangle()
+    {
+        return m_rectangle;
+    }
+
+    virtual void Draw(Entity::DrawType type = Entity::DrawType::NORMAL)
+    {
+        //empty
+    }
+
 protected:
-    EntityType m_entityType;
+    ::EntityType m_entityType;
     String m_name;
     String m_id;
+    Rect_t m_rectangle;
 
 };
 
@@ -95,11 +119,13 @@ public:
         return false;
     }
 
+    void Draw(Entity::DrawType type = Entity::DrawType::NORMAL);
+
+
 protected:
     SensorValue m_value;
     SensorValueType m_valueType;
     SensorType m_sensorType;
-
 };
 
 
@@ -124,6 +150,10 @@ public:
     {
         return m_state;
     }
+
+
+
+    void Draw(Entity::DrawType type = Entity::DrawType::NORMAL);   
 
 protected:
     ActuatorType m_actuatorType;

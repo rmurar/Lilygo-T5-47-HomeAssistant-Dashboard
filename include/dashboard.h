@@ -27,6 +27,9 @@ public:
 
     void ParseConfiguration();    
 
+    void InitSwitchBar();
+    void InitSensorBar();
+
     void DrawSwitchBar();
     void DrawSensorBar();
     void DrawBottomBar();
@@ -35,6 +38,8 @@ public:
     void DisplayGeneralInfoSection(String dayStamp, String timeStamp);
 
     void DrawDashboard(int rssi, String dayStamp, String timeStamp);
+
+    void ScanTouchPoint();
 
     void ClearRTCData();
     bool IsDeepSleepWakeupReason();

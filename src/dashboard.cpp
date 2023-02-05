@@ -76,6 +76,10 @@ void Dashboard::Init()
     if (!m_touchClass.begin()) {
         Serial.println("start touchscreen failed");
     }
+    else
+    {
+        Serial.println("start touchscreen OK");
+    }
 
     if(!IsDeepSleepWakeupReason())
     {
@@ -83,6 +87,9 @@ void Dashboard::Init()
     }
 
     ParseConfiguration();
+
+    InitSwitchBar();
+    InitSensorBar();
 
 }
 
@@ -162,31 +169,16 @@ void Dashboard::DrawBottomBar()
     }
 }
 
-void Dashboard::DrawSwitchBar()
+void Dashboard::InitSwitchBar()
 {
-    setFont(OpenSans9B);
+    Rect_t area;
+
     int x = 3;
     int y = 23;
     int i = 0;
     for(Actuator* actuator: m_AcuatorsList){
         if(actuator->GetName() != "") {
-            ActuatorType type = actuator->GetType();
-
-            if (type == ActuatorType::SWITCH ||
-                type == ActuatorType::LIGHT ||
-                type == ActuatorType::EXFAN ||
-                type == ActuatorType::FAN ||
-                type == ActuatorType::AIRPURIFIER ||
-                type == ActuatorType::WATERHEATER ||
-                type == ActuatorType::AIRCONDITIONER)
-            {            
-                DrawTile(x, y, checkOnOffState(actuator->GetId()), actuator->GetType(), actuator->GetName(), "");
-            }
-            else 
-            {
-                String val = getSensorValue(actuator->GetId());
-                DrawTile(x, y, ActuatorState::UNAVAILABLE, actuator->GetType(), actuator->GetName(), val);
-            }
+            area = GetTileRect(x, y);
         }
       
         x = x + TILE_WIDTH; // move column right
@@ -195,25 +187,43 @@ void Dashboard::DrawSwitchBar()
             y = y + TILE_HEIGHT;
         }
 
+        actuator->SetRectangle(area);
+
         i++;
+    }
+}
+
+void Dashboard::InitSensorBar()
+{
+    Rect_t area;
+
+    int x = 3;
+    int y = 345;
+    for(Sensor* sensor: m_SensorsList)
+    {
+        if (sensor->GetName() != "")
+        {
+            area = GetSensorTileRect(x, y);
+        }
+
+        sensor->SetRectangle(area);
+
+        x = x + SENSOR_TILE_WIDTH;
+    }
+}
+
+void Dashboard::DrawSwitchBar()
+{
+    for(Actuator* actuator: m_AcuatorsList){
+        actuator->Draw();
     }
 }
 
 void Dashboard::DrawSensorBar()
 {
-    setFont(OpenSans9B);
-    int x = 3;
-    int y = 345;
     for(Sensor* sensor: m_SensorsList)
     {
-        SensorType type = sensor->GetType();
-        if (type == SensorType::DOOR ||
-            type == SensorType::MOTION )
-        {
-      if (sensor->GetName() != "")
-            DrawSensorTile(x,y,checkOnOffState(sensor->GetId()), sensor->GetType(), sensor->GetName());
-        }
-        x = x + SENSOR_TILE_WIDTH;
+        sensor->Draw();
     }
 }
 
@@ -260,6 +270,23 @@ void Dashboard::DrawDashboard(int rssi, String dayStamp, String timeStamp)
     epd_poweroff();
 }
 
+void Dashboard::ScanTouchPoint()
+{
+    uint16_t x, y;
+	esp_sleep_wakeup_cause_t wakeup_reason;
+	wakeup_reason = esp_sleep_get_wakeup_cause();    
+
+    if(wakeup_reason == ESP_SLEEP_WAKEUP_EXT0)
+    {
+        if(m_touchClass.scanPoint())
+        {
+            m_touchClass.getPoint(x, y, 0);
+            y = EPD_HEIGHT - y;
+
+            Serial.printf("%ld: x=%d, y=%d\n", millis(), x, y);
+        }
+    }
+}
 
 void Dashboard::ClearRTCData()
 {
