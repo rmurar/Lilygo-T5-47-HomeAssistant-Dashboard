@@ -1,4 +1,4 @@
-#include "entity.h"
+#include "actuator.h"
 
 // epd
 #include "epd_driver.h"
@@ -100,26 +100,25 @@ void Actuator::Draw(Entity::DrawType type)
 }   
 
 
-void Sensor::Draw(Entity::DrawType type)
+void Actuator::HandleTouchEvent()
 {
-    if(m_valueType == SensorValueType::ONOFF)
+    if(m_touchType == Entity::TouchType::SINGLE)
     {
-        setFont(OpenSans9B);
-        if (m_sensorType == SensorType::DOOR ||
-            m_sensorType == SensorType::MOTION )
+        Serial.printf("Handle touch event on entity: %s\n", GetId().c_str());
+        
+        if(m_actuatorType == ActuatorType::LIGHT)
         {
-            if (GetName() != "") {
-                EntityState state;
-                if(GetState(state) == true)
-                { 
-                    DrawSensorTile(m_rectangle.x, m_rectangle.y, state, m_sensorType, GetName());
-                }
+            if(m_state == EntityState::OFF)
+            {
+                turnOnOffLight(GetId(), true);
+            }
+            else if(m_state == EntityState::ON)
+            {
+                turnOnOffLight(GetId(), false);
             }
         }
-    }
-    else if(m_valueType == SensorValueType::VALUE)
-    {
 
+        m_touchType = Entity::TouchType::NO_TOUCH;
     }
 
 }

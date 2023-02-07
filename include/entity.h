@@ -35,7 +35,7 @@ public:
     : m_entityType(type),
       m_name(name), m_id(id),
       m_touchType(TouchType::NO_TOUCH),
-      m_changed(false)
+      m_changed(false), m_refreshRequired(false)
     {
 
     }
@@ -92,6 +92,11 @@ public:
         //empty
     }
 
+    virtual void HandleTouchEvent()
+    {
+        //empty
+    }
+
 protected:
     ::EntityType m_entityType;
     String m_name;
@@ -100,119 +105,7 @@ protected:
     TouchType m_touchType;
 
     bool m_changed;
-
-};
-
-class Sensor: public Entity
-{
-public:
-    union SensorValue
-    {
-        EntityState m_state;
-        float m_floatValue;
-    };
-
-    Sensor(String name, String id, SensorValueType valueType, SensorType type)
-    : Entity(name, id, EntityType::SENSOR),
-      m_valueType(valueType), m_sensorType(type)
-    {
-
-    }
-
-    SensorType GetType() const
-    {
-        return m_sensorType;
-    }
-
-    SensorValueType GetValueType() const
-    {
-        return m_valueType;
-    }
-
-    bool GetState(EntityState& state)
-    {
-        if(m_valueType == SensorValueType::ONOFF)
-        {
-            state = m_value.m_state;
-            return true;
-        }
-
-        return false;
-    }
-
-
-    bool GetValue(float& value)
-    {
-        if(m_valueType == SensorValueType::VALUE)
-        {
-            value = m_value.m_floatValue;
-            return true;
-        }
-
-        return false;
-    }
-
-    void SetState(const EntityState& state, bool changed)
-    {
-        if(m_valueType == SensorValueType::ONOFF)
-        {
-            m_value.m_state = state;
-            m_changed = changed;
-        }
-    }
-
-    void SetValue(float value, bool changed)
-    {
-        if(m_valueType == SensorValueType::VALUE)
-        {
-            m_value.m_floatValue = value;
-            m_changed = changed;
-        }
-    }
-
-    void Draw(Entity::DrawType type = Entity::DrawType::NORMAL);
-
-
-protected:
-    SensorValue m_value;
-    SensorValueType m_valueType;
-    SensorType m_sensorType;
-};
-
-
-
-
-class Actuator: public Entity
-{
-public:
-    Actuator(String name, String id, ActuatorType type)
-    : Entity(name, id, EntityType::ACTUATOR),
-      m_actuatorType(type)
-    {
-
-    }
-
-    ActuatorType GetType() const
-    {
-        return m_actuatorType;
-    }
-
-    EntityState GetState() const
-    {
-        return m_state;
-    }
-
-    void SetState(const EntityState& state, bool changed)
-    {
-        m_state = state;
-        m_changed = changed;
-    }
-
-    void Draw(Entity::DrawType type = Entity::DrawType::NORMAL);   
-
-protected:
-    ActuatorType m_actuatorType;
-    EntityState m_state;
+    bool m_refreshRequired;
 
 };
 

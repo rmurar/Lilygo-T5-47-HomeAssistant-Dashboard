@@ -76,6 +76,37 @@ void setOnOffState(String entity, bool on)
     }
 }
 
+void turnOnOffLight(String entity, bool on)
+{
+    String strPayload;
+    String api_url = ha_server + "/api/services/light/";
+
+    if(on)
+    {
+        api_url += "turn_on";
+    }
+    else
+    {
+        api_url += "turn_off";
+    }
+
+    http.begin(api_url);
+    http.addHeader("Authorization", "Bearer " + ha_token);
+    http.addHeader("content-type", "application/json");
+
+    strPayload = "{\"entity_id\":\"" + entity + "\" }";
+
+    int code = http.POST(strPayload);
+    if (code != HTTP_CODE_OK)
+    {
+        Serial.println("Error '" + String(code) + "' connecting to HA API: " + api_url + "(" + entity + ")");
+    }
+    else
+    {
+        Serial.println("Execute OK:" + api_url + "(" + entity + ")");
+    }    
+}
+
 HAConfigurations getHaStatus()
 {
     HAConfigurations haConfigs;

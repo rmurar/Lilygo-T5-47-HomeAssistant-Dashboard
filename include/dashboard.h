@@ -8,6 +8,8 @@
 #include <vector>
 
 #include "entity.h"
+#include "actuator.h"
+#include "sensor.h"
 #include "defines.h"
 #include "touch.h"
 

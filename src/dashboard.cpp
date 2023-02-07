@@ -424,32 +424,13 @@ void Dashboard::ScanTouchEvent()
 
 void Dashboard::HandleTouchEvent()
 {
-    Entity::TouchType touchType;
-    EntityState state;
-
     if(m_flagTouchEvent)
     {
         for(Actuator* actuator: m_AcuatorsList)
         {
-            touchType = actuator->GetTouchType();
-            if(touchType == Entity::TouchType::SINGLE)
-            {
-                Serial.printf("Handle touch event on entity: %s\n", actuator->GetId().c_str());
-                state = actuator->GetState();
-                if(state == EntityState::OFF)
-                {
-                    setOnOffState(actuator->GetId(), true);
-                }
-                else if(state == EntityState::ON)
-                {
-                    setOnOffState(actuator->GetId(), false);
-                }
-
-                actuator->SetTouchType(Entity::TouchType::NO_TOUCH);
-            }
+            actuator->HandleTouchEvent();
         }
     }
-
 }
 
 void Dashboard::ClearRTCData()

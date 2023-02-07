@@ -12,5 +12,6 @@ String getSensorAttributeValue(String entity, String attribute);
 float getSensorFloatValue(String entity);
 
 void setOnOffState(String entity, bool on);
+void turnOnOffLight(String entity, bool on);
 
 #endif // __HOMEASSISTANTAPI_H__
