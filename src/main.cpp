@@ -139,16 +139,20 @@ void SetupTime()
 }
 
 void InitialiseSystem() {
-  StartTime = millis();
-  Serial.begin(115200);
-  while (!Serial);
-  Serial.println(String(__FILE__) + "\nStarting...");
-  epd_init();
-  framebuffer = (uint8_t *)ps_calloc(sizeof(uint8_t), EPD_WIDTH * EPD_HEIGHT / 2);
-  if (!framebuffer) Serial.println("Memory alloc failed!");
-  memset(framebuffer, 0xFF, EPD_WIDTH * EPD_HEIGHT / 2);
+    StartTime = millis();
+    Serial.begin(115200);
+    while (!Serial);
+    Serial.println(String(__FILE__) + "\nStarting...");
 
-  setFont(OpenSans9B);
+    uint32_t freq = getCpuFrequencyMhz();
+    Serial.printf("Current CPU freq= %ld Mhz\n", freq);
+
+    //setCpuFrequencyMhz(80);
+
+    //freq = getCpuFrequencyMhz();
+    //Serial.printf("Changed CPU freq= %ld Mhz\n", freq);
+
+    epd_init();
 }
 
 void BeginSleep() {

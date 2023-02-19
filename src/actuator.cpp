@@ -46,9 +46,9 @@
 
 void Actuator::Draw(Entity::DrawType type)
 {
-    bool localUpdate = false;
+    bool localUpdate = true;
 
-    setFont(OpenSans9B);
+    m_draw.GetEpdDrawing().setFont(OpenSans9B);
     if(GetName() != "") {
         ActuatorType type = GetType();
 
@@ -65,7 +65,7 @@ void Actuator::Draw(Entity::DrawType type)
                 epd_clear_area(m_rectangle);
             }
 
-            DrawTile(m_rectangle.x, m_rectangle.y, m_state, m_actuatorType, m_name, "");
+            m_draw.DrawTile(m_rectangle.x, m_rectangle.y, m_state, m_actuatorType, m_name, "");
 
             if(m_touchType == TouchType::SINGLE)
             {
@@ -73,12 +73,12 @@ void Actuator::Draw(Entity::DrawType type)
                 x = m_rectangle.x + m_rectangle.width - 10;
                 y = m_rectangle.y + m_rectangle.height - 10;
                 r = 4;
-                fillCircle(x, y, r, Black);
+                m_draw.GetEpdDrawing().fillCircle(x, y, r, Black);
             }
 
             if(localUpdate)
             {
-                epd_update_area(m_rectangle);
+                m_draw.GetEpdDrawing().update_area(m_rectangle);
             }
         }
         else 
@@ -89,11 +89,11 @@ void Actuator::Draw(Entity::DrawType type)
             }
 
             String val = getSensorValue(GetId());
-            DrawTile(m_rectangle.x, m_rectangle.y, EntityState::UNAVAILABLE, GetType(), GetName(), val);
+            m_draw.DrawTile(m_rectangle.x, m_rectangle.y, EntityState::UNAVAILABLE, GetType(), GetName(), val);
 
             if(localUpdate)
             {
-               epd_update_area(m_rectangle);
+               m_draw.GetEpdDrawing().update_area(m_rectangle);
             }
         }
     }

@@ -2,6 +2,7 @@
 #define __SENSOR_H__
 
 #include "entity.h"
+#include "draw.h"
 
 class Sensor: public Entity
 {
@@ -12,8 +13,8 @@ public:
         float m_floatValue;
     };
 
-    Sensor(String name, String id, SensorValueType valueType, SensorType type)
-    : Entity(name, id, EntityType::SENSOR),
+    Sensor(String name, String id, SensorValueType valueType, SensorType type, ::Draw &draw)
+    : Entity(name, id, EntityType::SENSOR, draw),
       m_valueType(valueType), m_sensorType(type)
     {
 

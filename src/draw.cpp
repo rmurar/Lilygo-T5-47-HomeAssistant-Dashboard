@@ -56,13 +56,24 @@
 
 #include "draw.h"
 
-Rect_t GetTileRect(int x, int y, int width, int height)
+Draw::Draw(int screen_width, int screen_height)
+: m_epdDrawing(screen_width, screen_height)
+{
+
+}
+
+void Draw::Init()
+{
+    m_epdDrawing.Init();
+}
+
+Rect_t Draw::GetTileRect(int x, int y, int width, int height)
 {
     Rect_t area = {.x = x, .y = y, .width = width, .height = height};
     return area;
 }
 
-Rect_t GetTileRect(int x, int y)
+Rect_t Draw::GetTileRect(int x, int y)
 {
     int tile_width = TILE_WIDTH - TILE_GAP; 
     int tile_height = TILE_HEIGHT - TILE_GAP;
@@ -72,13 +83,13 @@ Rect_t GetTileRect(int x, int y)
     return area;
 }
 
-Rect_t GetSensorTileRect(int x, int y, int width, int height)
+Rect_t Draw::GetSensorTileRect(int x, int y, int width, int height)
 {
     Rect_t area = {.x = x, .y = y, .width = width, .height = height};
     return area;
 }
 
-Rect_t GetSensorTileRect(int x, int y)
+Rect_t Draw::GetSensorTileRect(int x, int y)
 {
     int tile_width = SENSOR_TILE_WIDTH - TILE_GAP; 
     int tile_height = SENSOR_TILE_HEIGHT - TILE_GAP;
@@ -91,7 +102,7 @@ Rect_t GetSensorTileRect(int x, int y)
 
 
 // this will place a tile on screen that includes icon, staus and name of the HA entity
-Rect_t DrawTile(int x, int y, int width, int height, const uint8_t *image_data, String state, String label)
+Rect_t Draw::DrawTile(int x, int y, int width, int height, const uint8_t *image_data, String state, String label)
 {
   // this assumes images are 100x100px size. make sure images are cropped to 100x100 before converting
   int image_x = int((width - TILE_IMG_WIDTH)/2) + x; 
@@ -103,16 +114,16 @@ Rect_t DrawTile(int x, int y, int width, int height, const uint8_t *image_data, 
 
   Rect_t area = {.x = x, .y = y, .width = width, .height = height};
 
-  drawRect(x, y, width, height, Black);
-  drawRect(x + 1, y + 1, width - 2, height - 2, Black);
-  drawImage(image_x, image_y, TILE_IMG_WIDTH, TILE_IMG_HEIGHT, image_data);
-  drawString(top_txt_cursor_x, top_txt_cursor_y, label, CENTER);
-  drawString(bottom_txt_cursor_x, bottom_txt_cursor_y, state, CENTER);
+  m_epdDrawing.drawRect(x, y, width, height, Black);
+  m_epdDrawing.drawRect(x + 1, y + 1, width - 2, height - 2, Black);
+  m_epdDrawing.drawImage(image_x, image_y, TILE_IMG_WIDTH, TILE_IMG_HEIGHT, image_data);
+  m_epdDrawing.drawString(top_txt_cursor_x, top_txt_cursor_y, label, EpdDrawing::alignment::CENTER);
+  m_epdDrawing.drawString(bottom_txt_cursor_x, bottom_txt_cursor_y, state, EpdDrawing::alignment::CENTER);
 
   return area;
 }
 
-Rect_t DrawSensorTile(int x, int y, int width, int height, const uint8_t* image_data, String label)
+Rect_t Draw::DrawSensorTile(int x, int y, int width, int height, const uint8_t* image_data, String label)
 {
   // this assumes images are 128x128px size. make sure images are cropped to 128x128 before converting
   int image_x = int((width - SENSOR_TILE_IMG_WIDTH)/2) + x; 
@@ -122,15 +133,15 @@ Rect_t DrawSensorTile(int x, int y, int width, int height, const uint8_t* image_
 
   Rect_t area = {.x = x, .y = y, .width = width, .height = height};
 
-  drawRect(x, y, width, height, Black);
-  drawRect(x+1, y+1, width-2, height-2, Black);
-  drawImage(image_x, image_y, SENSOR_TILE_IMG_WIDTH, SENSOR_TILE_IMG_HEIGHT, image_data);
-  drawString(txt_cursor_x, txt_cursor_y, label, CENTER);
+  m_epdDrawing.drawRect(x, y, width, height, Black);
+  m_epdDrawing.drawRect(x+1, y+1, width-2, height-2, Black);
+  m_epdDrawing.drawImage(image_x, image_y, SENSOR_TILE_IMG_WIDTH, SENSOR_TILE_IMG_HEIGHT, image_data);
+  m_epdDrawing.drawString(txt_cursor_x, txt_cursor_y, label, EpdDrawing::alignment::CENTER);
 
   return area;
 }
 
-Rect_t DrawTile(int x, int y, EntityState state, ActuatorType type, String name, String value)
+Rect_t Draw::DrawTile(int x, int y, EntityState state, ActuatorType type, String name, String value)
 {
     int tile_width = TILE_WIDTH - TILE_GAP; 
     int tile_height = TILE_HEIGHT - TILE_GAP;
@@ -197,7 +208,7 @@ Rect_t DrawTile(int x, int y, EntityState state, ActuatorType type, String name,
     return area;
 }
 
-void DrawSensorTile(int x, int y, EntityState state, SensorType type, String name)
+void Draw::DrawSensorTile(int x, int y, EntityState state, SensorType type, String name)
 {
     int tile_width = SENSOR_TILE_WIDTH - TILE_GAP; 
     int tile_height = SENSOR_TILE_HEIGHT - TILE_GAP;
@@ -218,19 +229,19 @@ void DrawSensorTile(int x, int y, EntityState state, SensorType type, String nam
     }
 }
 
-void DrawBottomTile(int x, int y, String value, String name)
+void Draw::DrawBottomTile(int x, int y, String value, String name)
 {
     int tile_width = BOTTOM_TILE_WIDTH - TILE_GAP; 
     int tile_height = BOTTOM_TILE_HEIGHT - TILE_GAP;
-    drawRect(x, y, tile_width, tile_height, Black);
-    drawRect(x+1, y+1, tile_width-2, tile_height-2, Black);
-    setFont(OpenSans24B);
-    drawString(int(tile_width/2) + x, 508, value, CENTER);
-    setFont(OpenSans9B);
-    drawString(int(tile_width/2) + x, 532, name, CENTER);
+    m_epdDrawing.drawRect(x, y, tile_width, tile_height, Black);
+    m_epdDrawing.drawRect(x+1, y+1, tile_width-2, tile_height-2, Black);
+    m_epdDrawing.setFont(OpenSans24B);
+    m_epdDrawing.drawString(int(tile_width/2) + x, 508, value, EpdDrawing::alignment::CENTER);
+    m_epdDrawing.setFont(OpenSans9B);
+    m_epdDrawing.drawString(int(tile_width/2) + x, 532, name, EpdDrawing::alignment::CENTER);
 }
 
-void DrawBottomBar()
+void Draw::DrawBottomBar()
 {
     int tiles = 3;
     float totalEnergy = 0;
@@ -278,9 +289,9 @@ void DrawBottomBar()
     }
 }
 
-void DrawSwitchBar()
+void Draw::DrawSwitchBar()
 {
-    setFont(OpenSans9B);
+    m_epdDrawing.setFont(OpenSans9B);
     int x = 3;
     int y = 23;
     for (int i = 0; i < sizeof(haActuators) / sizeof(haActuators[0]); i++){
@@ -310,9 +321,9 @@ void DrawSwitchBar()
     }
 }
 
-void DrawSensorBar()
+void Draw::DrawSensorBar()
 {
-    setFont(OpenSans9B);
+    m_epdDrawing.setFont(OpenSans9B);
     int x = 3;
     int y = 345;
     for (int i = 0; i < sizeof(haSensors) / sizeof(haSensors[0]); i++){
@@ -326,7 +337,7 @@ void DrawSensorBar()
     }
 }
 
-void DrawRSSI(int x, int y, int rssi) 
+void Draw::DrawRSSI(int x, int y, int rssi) 
 {
   int WIFIsignal = 0;
   int xpos = 1;
@@ -338,13 +349,13 @@ void DrawRSSI(int x, int y, int rssi)
     if (_rssi <= -100) WIFIsignal = 4;  // -100dbm to  -81dbm displays 1-bar
     
     if (rssi != 0) 
-      fillRect(x + xpos * 8, y - WIFIsignal, 6, WIFIsignal, Black);
+      m_epdDrawing.fillRect(x + xpos * 8, y - WIFIsignal, 6, WIFIsignal, Black);
     else // draw empty bars
-      drawRect(x + xpos * 8, y - WIFIsignal, 6, WIFIsignal, Black);
+      m_epdDrawing.drawRect(x + xpos * 8, y - WIFIsignal, 6, WIFIsignal, Black);
     xpos++;
   }
   if (rssi == 0) 
-    drawString(x , y, "x", LEFT);
+    m_epdDrawing.drawString(x , y, "x", EpdDrawing::alignment::LEFT);
 }
 
 // void DrawBattery(int x, int y) {
@@ -363,7 +374,7 @@ void DrawRSSI(int x, int y, int rssi)
 //   }
 // }
 
-void DrawBattery(int x, int y)
+void Draw::DrawBattery(int x, int y)
 {
   int vref = 1100; // default battery vref
 
@@ -380,38 +391,38 @@ void DrawBattery(int x, int y)
     percentage = 2836.9625 * pow(voltage, 4) - 43987.4889 * pow(voltage, 3) + 255233.8134 * pow(voltage, 2) - 656689.7123 * voltage + 632041.7303;
     if (voltage >= 4.20) percentage = 100;
     if (voltage <= 3.20) percentage = 0;  // orig 3.5
-     drawRect(x + 55, y - 15 , 40, 15, Black);
-     fillRect(x + 95, y - 9, 4, 6, Black);
-     fillRect(x + 57, y - 13, 36 * percentage / 100.0, 11, Black);
-     drawString(x, y, String(percentage) + "%", LEFT);
-     drawString(x + 130, y,  String(voltage, 2) + "v", CENTER);
+     m_epdDrawing.drawRect(x + 55, y - 15 , 40, 15, Black);
+     m_epdDrawing.fillRect(x + 95, y - 9, 4, 6, Black);
+     m_epdDrawing.fillRect(x + 57, y - 13, 36 * percentage / 100.0, 11, Black);
+     m_epdDrawing.drawString(x, y, String(percentage) + "%", EpdDrawing::alignment::LEFT);
+     m_epdDrawing.drawString(x + 130, y,  String(voltage, 2) + "v", EpdDrawing::alignment::CENTER);
   }
 }
 
-void DisplayGeneralInfoSection(String dayStamp, String timeStamp)
+void Draw::DisplayGeneralInfoSection(String dayStamp, String timeStamp)
 {
-    setFont(OpenSans8B);
+    m_epdDrawing.setFont(OpenSans8B);
     Serial.println("Getting haStatus...");
     HAConfigurations haConfigs = getHaStatus();
     Serial.println("drawing status line...");    
-    drawString(EPD_WIDTH/2, 18, dayStamp + " - " +  timeStamp + " (HA Ver:" + haConfigs.version + "/" + haConfigs.haStatus + ", TZ:" + haConfigs.timeZone + ")", CENTER);
+    m_epdDrawing.drawString(EPD_WIDTH/2, 18, dayStamp + " - " +  timeStamp + " (HA Ver:" + haConfigs.version + "/" + haConfigs.haStatus + ", TZ:" + haConfigs.timeZone + ")", EpdDrawing::alignment::CENTER);
 }
 
-void DisplayStatusSection(int rssi)
+void Draw::DisplayStatusSection(int rssi)
 {
-  setFont(OpenSans8B);
+  m_epdDrawing.setFont(OpenSans8B);
   DrawBattery(5, 18);
   DrawRSSI(900, 18, rssi);
 }
 
-void DrawWifiErrorScreen(int rssi)
+void Draw::DrawWifiErrorScreen(int rssi)
 {
     epd_clear();
     DisplayStatusSection(rssi);
-    epd_update();
+    m_epdDrawing.update();
 }
 
-void DrawHAScreen(int rssi, String dayStamp, String timeStamp)
+void Draw::DrawHAScreen(int rssi, String dayStamp, String timeStamp)
 {
     epd_clear();
     
@@ -424,5 +435,5 @@ void DrawHAScreen(int rssi, String dayStamp, String timeStamp)
     Serial.println("Drawing bottomBar...");
     DrawBottomBar();
 
-    epd_update();
+    m_epdDrawing.update();
 }

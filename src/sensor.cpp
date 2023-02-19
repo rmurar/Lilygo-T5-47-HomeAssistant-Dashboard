@@ -49,7 +49,7 @@ void Sensor::Draw(Entity::DrawType type)
 {
     if(m_valueType == SensorValueType::ONOFF)
     {
-        setFont(OpenSans9B);
+        m_draw.GetEpdDrawing().setFont(OpenSans9B);
         if (m_sensorType == SensorType::DOOR ||
             m_sensorType == SensorType::MOTION )
         {
@@ -57,7 +57,7 @@ void Sensor::Draw(Entity::DrawType type)
                 EntityState state;
                 if(GetState(state) == true)
                 { 
-                    DrawSensorTile(m_rectangle.x, m_rectangle.y, state, m_sensorType, GetName());
+                    m_draw.DrawSensorTile(m_rectangle.x, m_rectangle.y, state, m_sensorType, GetName());
                 }
             }
         }

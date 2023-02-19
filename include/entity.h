@@ -7,6 +7,7 @@
 
 #include "defines.h"
 #include "epd_driver.h"
+#include "draw.h"
 
 enum class EntityType 
 {
@@ -31,11 +32,12 @@ public:
         SINGLE
     };
 
-    Entity(String name, String id, EntityType type)
+    Entity(String name, String id, EntityType type, Draw &draw)
     : m_entityType(type),
       m_name(name), m_id(id),
       m_touchType(TouchType::NO_TOUCH),
-      m_changed(false), m_refreshRequired(false)
+      m_changed(false), m_refreshRequired(false),
+      m_draw(draw)
     {
 
     }
@@ -103,6 +105,7 @@ protected:
     String m_id;
     Rect_t m_rectangle;
     TouchType m_touchType;
+    ::Draw &m_draw;
 
     bool m_changed;
     bool m_refreshRequired;

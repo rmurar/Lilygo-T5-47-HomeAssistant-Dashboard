@@ -13,6 +13,8 @@
 #include "defines.h"
 #include "touch.h"
 
+#include "draw.h"
+
 class Dashboard
 {
 public:
@@ -67,6 +69,8 @@ private:
     std::vector<Actuator *> m_AcuatorsList;
 
     TouchClass m_touchClass;
+    Draw m_draw;
+
 
     bool m_flagTouchEvent;
 };

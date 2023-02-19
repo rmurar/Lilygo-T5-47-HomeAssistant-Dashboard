@@ -2,12 +2,13 @@
 #define __ACTUATOR_H__
 
 #include "entity.h"
+#include "draw.h"
 
 class Actuator: public Entity
 {
 public:
-    Actuator(String name, String id, ActuatorType type)
-    : Entity(name, id, EntityType::ACTUATOR),
+    Actuator(String name, String id, ActuatorType type, ::Draw &draw)
+    : Entity(name, id, EntityType::ACTUATOR, draw),
       m_actuatorType(type)
     {
 

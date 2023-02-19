@@ -55,7 +55,8 @@ RTC_DATA_ATTR EntityState Dashboard::sensorsStateArray[MAX_SENSORS_COUNT];
 RTC_DATA_ATTR float Dashboard::floatSensorsStateArray[MAX_FLOAT_SENSORS_COUNT];
 
 Dashboard::Dashboard()
-: m_flagTouchEvent(false)
+: m_flagTouchEvent(false),
+  m_draw()
 {
     m_SensorsList.reserve(20);
     m_FloatSensorsList.reserve(20);
@@ -70,6 +71,8 @@ Dashboard::~Dashboard()
 
 void Dashboard::Init()
 {
+    m_draw.Init();
+
 /*
     Serial.begin(115200);
 */
@@ -88,6 +91,7 @@ void Dashboard::Init()
     if(!IsDeepSleepWakeupReason())
     {
         ClearRTCData();
+        epd_clear();
     }
 
     ParseConfiguration();
@@ -108,17 +112,17 @@ void Dashboard::ParseConfiguration()
 
     for(i = 0; i < actuatorsCount; i++)
     {
-        m_AcuatorsList.push_back(new Actuator(haActuators[i].name, haActuators[i].id, haActuators[i].type));
+        m_AcuatorsList.push_back(new Actuator(haActuators[i].name, haActuators[i].id, haActuators[i].type, m_draw));
     }
 
     for(i = 0; i < sensorsCount; i++)
     {
-        m_SensorsList.push_back(new Sensor(haSensors[i].name, haSensors[i].id, haSensors[i].valueType, haSensors[i].type));
+        m_SensorsList.push_back(new Sensor(haSensors[i].name, haSensors[i].id, haSensors[i].valueType, haSensors[i].type, m_draw));
     }
 
     for(i = 0; i < floatSensorsCount; i++)
     {
-        m_FloatSensorsList.push_back(new Sensor(haFloatSensors[i].name, haFloatSensors[i].id, haFloatSensors[i].valueType, haFloatSensors[i].type));
+        m_FloatSensorsList.push_back(new Sensor(haFloatSensors[i].name, haFloatSensors[i].id, haFloatSensors[i].valueType, haFloatSensors[i].type, m_draw));
     }
 
 }
@@ -148,13 +152,13 @@ void Dashboard::DrawBottomBar()
     // first one 
     if (totalEnergy != 0)
     {
-        DrawBottomTile(x, y, String(totalEnergy) + " kWh", totalEnergyName);
+        m_draw.DrawBottomTile(x, y, String(totalEnergy) + " kWh", totalEnergyName);
         x = x + BOTTOM_TILE_WIDTH;
         tiles--;
     }
     if (totalPower != 0)
     {
-        DrawBottomTile(x, y, String((int)totalPower) + " W", totaPowerName);
+        m_draw.DrawBottomTile(x, y, String((int)totalPower) + " W", totaPowerName);
         x = x + BOTTOM_TILE_WIDTH;
         tiles--;
     }
@@ -166,7 +170,7 @@ void Dashboard::DrawBottomBar()
             float temp = getSensorAttributeValue(sensor->GetId(), "current_temperature").toFloat();
             if (temp == 0)
                 temp = getSensorValue(sensor->GetId()).toFloat();
-            DrawBottomTile(x, y, String(temp, 1) + "° C", sensor->GetName());
+            m_draw.DrawBottomTile(x, y, String(temp, 1) + "° C", sensor->GetName());
             x = x + BOTTOM_TILE_WIDTH;
             tiles--;
         }
@@ -182,7 +186,7 @@ void Dashboard::InitSwitchBar()
     int i = 0;
     for(Actuator* actuator: m_AcuatorsList){
         if(actuator->GetName() != "") {
-            area = GetTileRect(x, y);
+            area = m_draw.GetTileRect(x, y);
         }
       
         x = x + TILE_WIDTH; // move column right
@@ -207,7 +211,7 @@ void Dashboard::InitSensorBar()
     {
         if (sensor->GetName() != "")
         {
-            area = GetSensorTileRect(x, y);
+            area = m_draw.GetSensorTileRect(x, y);
         }
 
         sensor->SetRectangle(area);
@@ -233,9 +237,9 @@ void Dashboard::DrawSensorBar()
 
 void Dashboard::DisplayStatusSection(int rssi)
 {
-  setFont(OpenSans8B);
-  DrawBattery(5, 18);
-  DrawRSSI(900, 18, rssi);
+  m_draw.GetEpdDrawing().setFont(OpenSans8B);
+  m_draw.DrawBattery(5, 18);
+  m_draw.DrawRSSI(900, 18, rssi);
 
 }
 
@@ -243,16 +247,16 @@ void Dashboard::DrawWifiErrorScreen(int rssi)
 {
     epd_clear();
     DisplayStatusSection(rssi);
-    epd_update();
+    m_draw.GetEpdDrawing().update();
 }
 
 void Dashboard::DisplayGeneralInfoSection(String dayStamp, String timeStamp)
 {
-    setFont(OpenSans8B);
+    m_draw.GetEpdDrawing().setFont(OpenSans8B);
     Serial.println("Getting haStatus...");
     HAConfigurations haConfigs = getHaStatus();
     Serial.println("drawing status line...");    
-    drawString(EPD_WIDTH/2, 18, dayStamp + " - " +  timeStamp + " (HA Ver:" + haConfigs.version + "/" + haConfigs.haStatus + ", TZ:" + haConfigs.timeZone + ")", CENTER);
+    m_draw.GetEpdDrawing().drawString(EPD_WIDTH/2, 18, dayStamp + " - " +  timeStamp + " (HA Ver:" + haConfigs.version + "/" + haConfigs.haStatus + ", TZ:" + haConfigs.timeZone + ")", EpdDrawing::alignment::CENTER);
 }
 
 
@@ -342,7 +346,7 @@ void Dashboard::GetValuesDashboard()
 
 void Dashboard::DrawDashboard(int rssi, String dayStamp, String timeStamp)
 {
-#if 1
+#if 0
     epd_poweron();
 
     epd_clear();
@@ -368,7 +372,7 @@ void Dashboard::DrawDashboard(int rssi, String dayStamp, String timeStamp)
     DisplayStatusSection(rssi);
     DisplayGeneralInfoSection(dayStamp, timeStamp);
 
-    epd_update_area(area);
+    m_draw.GetEpdDrawing().update_area(area);
 
 
     Serial.println("Drawing switchBar...");
@@ -379,8 +383,8 @@ void Dashboard::DrawDashboard(int rssi, String dayStamp, String timeStamp)
     Serial.println("Drawing bottomBar...");
     DrawBottomBar();
 */
-
-    epd_poweroff();
+    Serial.println("Drawing switchBar...DONE");
+    epd_poweroff_all();
 #endif
 }
 
